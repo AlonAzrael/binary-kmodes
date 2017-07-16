@@ -1,0 +1,17 @@
+**/__X_*/
+**/__X_*/*
+
+**/*.pyc
+**/.DS_Store*
+
+**/.git*/
+**/.git*/*
+
+**/.ipynb_checkpoints/*
+**/.ipynb_checkpoints/
+
+**/build/*
+**/build/
+**/dist/*
+**/dist/
+**/*.egg*
