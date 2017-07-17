@@ -93,7 +93,7 @@ def kmodes_fit(
     X = X.astype(np.uint8)
 
     cdef:
-        int i = 0, j = 0, k = 0, epoch = 0, ind = 0, mi = 0
+        int i = 0, j = 0, k = 0, epoch = 0, ind = 0, mi = 0, z = 0, cur_i = 0
         int dist = 0, n_features = X.shape[1], n_rows = X.shape[0], n_cols = 0
         # np.ndarray[ndim=1, dtype=np.int32_t] dists = np.zeros(n_rows, dtype=np.int32)
         int[:] dists = np.zeros(n_rows, dtype=np.int32)
@@ -112,30 +112,31 @@ def kmodes_fit(
         int half = 0
         int[:] clusters = np.zeros(n_rows, dtype=np.int32)
         uint8_t[:, ::1] new_modes = None
+        uint8_t[:, ::1] u8narr = np.unpackbits( np.asarray([i for i in xrange(256)], dtype=np.uint8).reshape(-1, 1), ).reshape(-1, 8)
 
     n_cols = Xbi.shape[1]
-    for i in xrange(256):
+    for i in range(256):
         u8tb[i] = bin(i).count("1")
 
     # initialize modes
     np.random.shuffle(indices)
-    for i in xrange(n_clusters):
+    for i in range(n_clusters):
         modes[i, :] = Xbi[indices[i]]
 
     # update modes
-    for epoch in xrange(n_epochs):
+    for epoch in range(n_epochs):
         modes_hist[:, :] = 0
         modes_count[:] = 0
         np.random.shuffle(indices)
 
-        for mi in xrange(batch_size):
+        for mi in range(batch_size):
             i = indices[mi]
 
             min_ind = 0
             min_dist = n_features+1
-            for k in xrange(n_clusters):
+            for k in range(n_clusters):
                 dist = 0
-                for j in xrange(n_cols):
+                for j in range(n_cols):
                     dist += u8tb[ Xbi[i, j] ^ modes[k, j] ]
 
                 if dist < min_dist:
@@ -143,17 +144,27 @@ def kmodes_fit(
                     min_dist = dist
 
             # update modes histogram
-            features = np.unpackbits(Xbi[i])[:n_features]
-            for j in xrange(n_features):
-                modes_hist[min_ind, j] += features[j]
+            # features = np.unpackbits(Xbi[i])[:n_features]
+            # for j in xrange(n_features):
+            #     modes_hist[min_ind, j] += features[j]
+            # modes_count[min_ind] += 1
+
+            cur_i = 0
+            for j in range(n_cols):
+                cur_u8 = Xbi[i, j]
+                for z in range(8):
+                    modes_hist[min_ind, cur_i] += u8narr[cur_u8, z]
+                    cur_i += 1
+                    if cur_i >= n_features:
+                        break
             modes_count[min_ind] += 1
 
         # print "modes_hist:", np.asarray(modes_hist)
         # print "modes_count:", np.asarray(modes_count)
 
-        for k in xrange(n_clusters):
+        for k in range(n_clusters):
             half = modes_count[k]/2
-            for j in xrange(n_features):
+            for j in range(n_features):
                 if modes_hist[k, j] > half:
                     modes_hist[k, j] = 1
                 else:

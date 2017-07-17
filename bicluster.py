@@ -39,14 +39,14 @@ def test():
     # mat[mat > 0.5] = 1
     # mat[mat <= 0.5] = 0
 
-    n_clusters = 20
-    mat = np.random.random([20, 250])
+    n_clusters = 40
+    mat = np.random.random([n_clusters, 250])
     mat[mat > 0.7] = 1
     mat[mat <= 0.7] = 0
 
     mats = []
     labels = []
-    n_samples = 150
+    n_samples = 1500
     for i in xrange(mat.shape[0]):
         m = np.zeros([n_samples, mat.shape[1]])
         l = np.zeros(n_samples, dtype=np.int32) + i
@@ -75,7 +75,7 @@ def test():
     # print clusters
 
     st = time()
-    clusters_km = KMeans(n_clusters, max_iter=20, n_init=1).fit_predict(mat)
+    clusters_km = KMeans(n_clusters, max_iter=20, n_init=1, tol=0).fit_predict(mat)
     print "elapsed time:", time() - st
 
     print homogeneity_completeness_v_measure(labels, clusters)
